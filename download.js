@@ -1,9 +1,14 @@
 /* eslint-env node, browser*/
 /* eslint no-console:0 */
 
-var Nightmare = require('nightmare');
-require('nightmare-inline-download')(Nightmare);
-//switch to nightmare-download-manager for more control and feed back on download proccess
+var Nightmare = require('nightmare'),
+    fs = require("fs");
+require('nightmare-download-manager')(Nightmare);
+
+var ou = "55363";
+//var ou = "16179";
+//var ou = "112655";
+//var ou = "10011";
 
 var nightmare = Nightmare({
     show: true,
@@ -14,23 +19,41 @@ var nightmare = Nightmare({
     alwaysOnTop: false,
     waitTimeout: 20 * 60 * 1000
 });
-var ou = "16179";
-//var ou = "112655";
-//var ou = "10011";
+
+nightmare.on('download', function(state, downloadItem){
+    if(state == 'started'){
+        nightmare.emit('download', `./_exports/d2lExport_${ou}_package.zip`, downloadItem);
+    }
+    if(state == "updated"){
+        console.log("Downloaded: ", downloadItem.receivedBytes + " / " + downloadItem.totalBytes + " Bytes");
+    }
+});
+
+function handleDownload(state, download){
+    console.log("Download: ")
+    console.log("state:", state, download);
+}
+
+//until the user interface works, we will use this for now.
+var authData = JSON.parse(fs.readFileSync("./auth.json"));
+
 
 nightmare
+    .downloadManager()
     .goto('https://byui.brightspace.com/d2l/login?noredirect=1')
-    .type("#userName", "")
-    .type("#password", "")
+    .type("#userName", authData.username)
+    .type("#password", authData.password)
     .click("a.vui-button-primary")
     .wait(function () {
         //go to d2l home
+    console.log("Waiting");
         return document.location.href === "https://byui.brightspace.com/d2l/home";
     })
     //go to check box page 
-    .goto("https://byui.brightspace.com/d2l/lms/importExport/export/export_select_components.d2l?ou=" + ou)
+  .goto("https://byui.brightspace.com/d2l/lms/importExport/export/export_select_components.d2l?ou=" + ou)
     .wait('input[name="checkAll"]')
     .click('input[name="checkAll"]')
+    .wait('a.vui-button-primary')
     .click('a.vui-button-primary')
     //go to confirm page
     .wait(function (ou) {
@@ -51,7 +74,7 @@ nightmare
     }, ou)
     .wait('form a.vui-link')
     .click('form a.vui-link')
-    .download("./" + ou + "_export.zip")
+    .waitDownloadsComplete()
     .end()
     .then(function () {
         console.log("done");
