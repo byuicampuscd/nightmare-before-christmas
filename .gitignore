@@ -1,6 +1,8 @@
 # dont upload all of nightmare dependencies
 node_modules
 # Auth Data
-#auth.json
+auth.json
 # test files
 tests.txt
+_exports
+*.zip
