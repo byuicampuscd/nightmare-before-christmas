@@ -44,18 +44,20 @@ function * run() {
     for (var i = 0; i < orgUnits.length; i++) {
         var unit = orgUnits[i];
         yield nightmare
-            .goto("https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + orgUnits[i])
+            .goto("https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit)
             .wait(function (unit) {
                 console.log("Waiting");
                 return document.location.href === "https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit;
             }, unit)
             .wait('#z_b') //Wait for the grade-item table to load
             .evaluate(function (selector) {
-                // now we're executing inside the browser scope.
-                return document.querySelector(selector).innerText;
+                // gets the whole HTML table of the grades page
+                return document.querySelector(selector).innerHTML;
             }, selector) // <-- that's how you pass parameters from Node scope to browser scope
             .then(function (text) {
                 console.log(text)
+                //Saves exactly what's in the above console.log to a .csv file
+                fs.writeFile("tables/" + unit + "log.csv", text, function(err){if (err) throw err})
             })
     }
     yield nightmare.end()
