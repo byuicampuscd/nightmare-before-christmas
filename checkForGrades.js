@@ -14,9 +14,6 @@ var selector = '#z_b'
 //fix
 vo(run)(function (err, result) {
     if (err) throw err
-    orgUnits.forEach(function (text) {
-        console.log('Result: ', text)
-    })
 })
 
 
