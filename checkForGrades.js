@@ -44,7 +44,7 @@ nightmare
     .catch(function (error) {
         console.error(error);
     });
-
+var selector = '#z_b' //the grades table
 function check(unit, callback) {
     nightmare
         .goto("https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit)
@@ -53,13 +53,14 @@ function check(unit, callback) {
             return document.location.href === "https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit;
         }, unit)
         .wait('#z_b') //Wait for the grade-item table to load
-        //READ THE GRADE ITEMS
-        .screenshot('screenshots/' + unit + '.png') //can also do .pdf and .html
-        .run(function (err, nightmare) {
-            if (err) {
-                console.log(err);
-            }
-            console.log('Unit Done');
-            callback()
+        .evaluate(function (selector) {
+            // now we're executing inside the browser scope.
+            return document.querySelector(selector).innerText;
+        }, selector) // <-- that's how you pass parameters from Node scope to browser scope
+        .end()
+        .then(function (text) {
+            console.log(text)
+            callback(text)
         })
+
 }
