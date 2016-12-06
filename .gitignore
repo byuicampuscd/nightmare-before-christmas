@@ -6,3 +6,4 @@ auth.json
 tests.txt
 _exports
 *.zip
+/auth.json

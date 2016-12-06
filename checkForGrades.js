@@ -6,9 +6,11 @@
 var Nightmare = require('nightmare'),
     fs = require("fs");
 require('nightmare-download-manager')(Nightmare);
+//require('nightmare-helpers')(Nightmare);
 var async = require("async");
 
-var orgUnits  = ["64229", "10011"]; //Diddy's sandbox, JAM's sandbox
+var associations;
+var orgUnits = ["64229", "10011"]; //Diddy's sandbox, JAM's sandbox
 
 var nightmare = Nightmare({
     show: true,
@@ -34,29 +36,30 @@ nightmare
         return document.location.href === "https://byui.brightspace.com/d2l/home";
     })
     .then(function () {
-        console.log("Ready to start checking courses.");
+        console.log("Checking these courses:", orgUnits);
+        async.eachSeries(orgUnits, check, function (err) {
+            console.log('done!');
+        })
     })
     .catch(function (error) {
         console.error(error);
     });
 
-function check(unit, callback){
-  nightmare
-  .goto("https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit)
-  .wait(function(){
-      console.log("Waiting");
-        return document.location.href === "https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit;
-  })
-  //CHECK FOR GRADES AND STUFF
-  .run(function(err, nightmare) {
-    if (err) {
-      console.log(err);
-    }
-    console.log('Done checking: ', unit;
-    callback()
-  });
+function check(unit, callback) {
+    nightmare
+        .goto("https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit)
+        .wait(function (unit) {
+            console.log("Waiting");
+            return document.location.href === "https://byui.brightspace.com/d2l/lms/grades/admin/manage/gradeslist.d2l?ou=" + unit;
+        }, unit)
+        .wait('#z_b') //Wait for the grade-item table to load
+        //READ THE GRADE ITEMS
+        .screenshot('screenshots/' + unit + '.png') //can also do .pdf and .html
+        .run(function (err, nightmare) {
+            if (err) {
+                console.log(err);
+            }
+            console.log('Unit Done');
+            callback()
+        })
 }
-
-async.eachSeries(orgUnits, check, function (err) {
-  console.log('done!');
-});
