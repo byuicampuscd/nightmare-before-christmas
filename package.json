@@ -1,0 +1,23 @@
+{
+  "name": "course-downloader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "dependencies": {
+    "async": "^2.1.4",
+    "nightmare": "^2.8.1",
+    "nightmare-download-manager": "^0.2.2",
+    "nightmare-helpers": "git+https://github.com/byuicampuscd/nightmare-helpers.git",
+    "nightmare-inline-download": "^0.2.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/byuicampuscd/nightmare-before-christmas.git"
+  },
+  "author": "Eric Julander",
+  "license": "MIT"
+}
