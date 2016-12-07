@@ -6,12 +6,60 @@ var downloader = function (show, devTools) {
     console.log(show);
     this.show = show || false;
     this.devTools = devTools;
+    this.cookieJar = [];
+    this.bad = [];
 }
 var dl = downloader.prototype;
 // async map fucntion
+
+dl.setCookies = function (callback) {
+    console.log("Setting Cookies...");
+    var Nightmare = require('nightmare'),
+        fs = require("fs"),
+        nightmare,
+        me,
+        nightmarePrefs = {
+            show: false,
+            typeInterval: 20,
+            alwaysOnTop: false,
+            waitTimeout: 20 * 60 * 1000
+        };
+    nightmare = Nightmare(nightmarePrefs);
+    var authData = JSON.parse(fs.readFileSync("./auth.json"));
+    nightmare
+        .goto('https://byui.brightspace.com/d2l/login?noredirect=1')
+        .type("#userName", authData.username)
+        .type("#password", authData.password)
+        .click("a.vui-button-primary")
+        .wait(2 * 1000)
+        .wait(function () {
+            console.log(document.querySelector("span.d2l-menuflyout-text"));
+            return (document.querySelector("span.d2l-menuflyout-text") && document.querySelector("span.d2l-menuflyout-text"));
+        })
+        .cookies.get()
+        .end()
+        .then(function (cookies) {
+            this.cookieJar = cookies;
+            console.log("Cookies Set...", this.cookieJar);
+            console.log("done");
+            callback();
+        })
+        .catch(function (error) {
+            console.error(error);
+        });
+
+
+};
+
 dl.downloadCourse = function (params, callback) {
+    if(!this.cookieJar || this.cookieJar === []){   
+        console.log("Hold on...where is your cookie?!")
+        return;
+    }
+    console.log(typeof callback);
     var org = params.org;
     var path = params.path;
+    var me = params.me;
     if (!org || !path) {
         console.log("Err: Please provide", (org) ? "a path for the download" : "an org unit");
         return;
@@ -22,18 +70,17 @@ dl.downloadCourse = function (params, callback) {
         ou = org,
         nightmare,
         nightmarePrefs = {
-            show: this.show,
+            show: me.show,
             typeInterval: 20,
             alwaysOnTop: false,
             waitTimeout: 20 * 60 * 1000
         };
-    console.log(this.show);
-
     require('nightmare-download-manager')(Nightmare);
+    require('nightmare-helpers')(Nightmare);
 
 
 
-    if (this.devTools) {
+    if (me.devTools) {
         nightmarePrefs.openDevTools = {
             mode: 'detach'
         };
@@ -56,43 +103,56 @@ dl.downloadCourse = function (params, callback) {
     }
 
     //until the user interface works, we will use this for now.
-    var authData = JSON.parse(fs.readFileSync("./auth.json"));
 
-
+    //nightmare.setWaitTimeout(30*1000);
+        function process() {
+            return document.getElementsByTagName("h1")[0].innerHTML.match(/(Internal Error)/g).length > 0;
+        }
+    var shouldStop = false;
+    console.log(this.cookieJar);
+	var hangtime = 10*1000
     nightmare
         .downloadManager()
         .goto('https://byui.brightspace.com/d2l/login?noredirect=1')
-        .type("#userName", authData.username)
-        .type("#password", authData.password)
-        .click("a.vui-button-primary")
-        .wait(function () {
-            //go to d2l home
-            console.log("Waiting");
-            return document.location.href === "https://byui.brightspace.com/d2l/home";
-        })
+        .cookies.set(this.cookieJar)
         //go to check box page 
+        .setWaitTimeout(0,5,0)
         .goto("https://byui.brightspace.com/d2l/lms/importExport/export/export_select_components.d2l?ou=" + ou)
+        .wait(hangtime)
+        .wait(function(){
+            return document.getElementsByTagName("h1")[0].innerHTML.match(/(Select Course Material)/g);
+        })
         .wait('input[name="checkAll"]')
         .click('input[name="checkAll"]')
+        .wait(hangtime)
         .wait('a.vui-button-primary')
         .click('a.vui-button-primary')
         //go to confirm page
+        .wait(hangtime)
         .wait(function (ou) {
             return document.location.href === "https://byui.brightspace.com/d2l/lms/importExport/export/export_select_confirm.d2l?ou=" + ou;
         }, ou)
+        .wait(hangtime)
         .wait('.vui-button-primary')
         .check('input[name="exportFiles"]')
         .click('.vui-button-primary')
         //go to zipping proccess page
+        .wait(hangtime)
         .wait(function (ou) {
             return document.location.href === "https://byui.brightspace.com/d2l/lms/importExport/export/export_process.d2l?ou=" + ou;
         }, ou)
+        .wait(hangtime)
+        .setWaitTimeout(20,0,0)
+        .wait(hangtime)
         .wait('.vui-button-primary[aria-disabled="false"]')
+        .wait(hangtime)
         .click('a.vui-button-primary')
+        .wait(hangtime)
         //go to export_summary
         .wait(function () {
             return document.location.origin + document.location.pathname === "https://byui.brightspace.com/d2l/lms/importExport/export/export_summary.d2l";
         }, ou)
+        .wait(hangtime)
         .wait('form a.vui-link')
         .click('form a.vui-link')
         .waitDownloadsComplete()
@@ -103,6 +163,8 @@ dl.downloadCourse = function (params, callback) {
         })
         .catch(function (error) {
             console.error(error);
+            me.bad.push(ou);
+            callback(null, ou);
         });
 }
 
