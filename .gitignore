@@ -7,3 +7,4 @@ tests.txt
 _exports
 _exports_
 *.zip
+/auth.json
