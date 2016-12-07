@@ -18,6 +18,7 @@ vo(run)(function (err, result) {
 
 
 function * run() {
+    //SPAWN NIGHTMARE, LOG IN, GET TO HOME PAGE
     var nightmare = Nightmare({
         show: true,
         typeInterval: 20,
@@ -40,7 +41,7 @@ function * run() {
         .catch(function (error) {
             console.error(error);
         });
-
+    //GRAB THE GRADE TABLES
     for (var i = 0; i < orgUnits.length; i++) {
         var unit = orgUnits[i];
         yield nightmare
@@ -52,14 +53,30 @@ function * run() {
             .wait('#z_b') //Wait for the grade-item table to load
             .evaluate(function (selector) {
                 // gets the whole HTML table of the grades page
-                return document.querySelector(selector).innerHTML;
+
+                function Console(){
+                    this.message = [];
+                    this.prototype.log = function(data){
+                        message.push(data);
+                    }
+                }
+
+                return {log:Console.message, doc:document.querySelector(selector).innerHTML};
             }, selector) // <-- that's how you pass parameters from Node scope to browser scope
-            .then(function (text) {
-                console.log(text)
+            .then(function (response) {
+                response.log.map(function(item){
+                    console.log(item);
+                })
+                console.log(typeof response.doc)
                 //Saves exactly what's in the above console.log to a .csv file
-                fs.writeFile("tables/" + unit + "log.csv", text, function(err){if (err) throw err})
+                fs.writeFile("tables/" + unit + "log.html", response.doc, function(err){if (err) throw err})
             })
+
     }
     yield nightmare.end()
+    //CHECK THE GRADE TABLES
+
 }
 
+
+// //img[contains(@alt, 'Association Information')]
