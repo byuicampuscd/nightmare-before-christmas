@@ -1,7 +1,7 @@
 {
   "name": "nightmare-before-christmas",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is the D2L mass exporter tool.",
   "main": "main.js",
   "dependencies": {
     "async": "^2.1.4",
