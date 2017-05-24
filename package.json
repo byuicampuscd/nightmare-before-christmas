@@ -1,5 +1,5 @@
 {
-  "name": "course-downloader",
+  "name": "nightmare-before-christmas",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -19,5 +19,8 @@
     "url": "https://www.github.com/byuicampuscd/nightmare-before-christmas.git"
   },
   "author": "Eric Julander",
+  "contributor": [{
+    "name": "Didymus Benson"
+  }],
   "license": "MIT"
 }
