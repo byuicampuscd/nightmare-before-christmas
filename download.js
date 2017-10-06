@@ -1,6 +1,6 @@
-/* eslint-env node, browser*/
+/* eslint-env node, browser, es6*/
 /* eslint no-console:0 */
-/*global require */
+/*global require $ */
 
 var downloader = function (show, devTools) {
     console.log(show);
@@ -85,6 +85,7 @@ dl.downloadCourse = function (params, callback) {
     var Nightmare = require('nightmare'),
         fs = require("fs"),
         ou = org,
+        name = params.name,
         nightmare,
         nightmarePrefs = {
             show: me.show,
@@ -107,7 +108,7 @@ dl.downloadCourse = function (params, callback) {
 
     nightmare.on('download', function (state, downloadItem) {
         if (state === 'started') {
-            nightmare.emit('download', path + `/d2lExport_${ou}_package.zip`, downloadItem);
+            nightmare.emit('download', path + `/${name}.zip`, downloadItem);
         }
         if (state == "updated") {
             console.log("Downloaded: ", downloadItem.receivedBytes + " / " + downloadItem.totalBytes + " Bytes");
