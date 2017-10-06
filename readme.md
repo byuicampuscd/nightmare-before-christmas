@@ -1,0 +1,1 @@
+D2L mass export tool. reads in a list of OU's and downloads them in batches to the _exports folder

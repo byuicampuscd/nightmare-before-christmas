@@ -5,6 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "async": "^2.1.4",
+    "d3-dsv": "^1.0.7",
     "nightmare": "^2.8.1",
     "nightmare-download-manager": "^0.2.2",
     "nightmare-helpers": "git+https://github.com/byuicampuscd/nightmare-helpers.git",

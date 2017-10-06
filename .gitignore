@@ -7,4 +7,7 @@ tests.txt
 _exports
 _exports_
 *.zip
+*.csv
 /auth.json
+courses.json
+coursesSmall.json
